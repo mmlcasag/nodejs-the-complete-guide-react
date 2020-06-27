@@ -1,4 +1,9 @@
 import React, { Component, Fragment } from 'react';
+// WebSockets and Socket.io
+// How to install?
+// npm install --save socket.io-client
+// How to import it?
+import openSocket from 'socket.io-client';
 
 import Post from '../../components/Feed/Post/Post';
 import Button from '../../components/Button/Button';
@@ -39,6 +44,9 @@ class Feed extends Component {
       .catch(this.catchError);
 
     this.loadPosts();
+    // WebSockets and Socket.io
+    // How to connect the client to the server?
+    openSocket('http://localhost:8080');
   }
 
   loadPosts = direction => {
