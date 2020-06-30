@@ -185,6 +185,29 @@ class Feed extends Component {
         }
         `
       }
+
+      if (this.state.editPost) {
+        graphqlQuery = {
+          query: `
+            mutation {
+              updatePost(id: "${this.state.editPost._id}", postInput: {
+                title: "${postData.title}",
+                content: "${postData.content}",
+                imageUrl: "${imageUrl}"
+              }) {
+                _id
+                title
+                content
+                imageUrl
+                creator {
+                  name
+                }
+                createdAt
+              }
+            }
+          `
+        }
+      }
       
       return fetch('http://localhost:8080/graphql', {
         method: 'POST',
@@ -208,14 +231,26 @@ class Feed extends Component {
         throw new Error('Creating or editing a post failed!');
       }
       console.log(resData);
-      const post = {
-        _id: resData.data.createPost._id,
-        title: resData.data.createPost.title,
-        content: resData.data.createPost.content,
-        creator: resData.data.createPost.creator,
-        createdAt: resData.data.createPost.createdAt,
-        imagePath: resData.data.createPost.imageUrl
-      };
+      let post;
+      if (this.state.editPost) {
+        post = {
+          _id: resData.data.updatePost._id,
+          title: resData.data.updatePost.title,
+          content: resData.data.updatePost.content,
+          creator: resData.data.updatePost.creator,
+          createdAt: resData.data.updatePost.createdAt,
+          imagePath: resData.data.updatePost.imageUrl
+        };
+      } else {
+        post = {
+          _id: resData.data.createPost._id,
+          title: resData.data.createPost.title,
+          content: resData.data.createPost.content,
+          creator: resData.data.createPost.creator,
+          createdAt: resData.data.createPost.createdAt,
+          imagePath: resData.data.createPost.imageUrl
+        };
+      }
       this.setState(prevState => {
         let updatedPosts = [...prevState.posts];
         if (prevState.editPost) {
