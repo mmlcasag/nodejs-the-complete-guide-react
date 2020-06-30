@@ -22,19 +22,30 @@ class Feed extends Component {
   };
 
   componentDidMount() {
-    fetch('http://localhost:8080/user/status', {
+    const graphqlQuery = {
+      query: `
+        {
+          user {
+            status
+          }
+        }
+      `
+    }
+    
+    fetch('http://localhost:8080/graphql', {
+      method: 'POST',
       headers: {
-        'Authorization': 'Bearer ' + this.props.token
-      }
+        'Authorization': 'Bearer ' + this.props.token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(graphqlQuery)
     })
-      .then(res => {
-        if (res.status !== 200) {
+      .then(res => res.json())
+      .then(resData => {
+        if (resData.errors) {
           throw new Error('Failed to fetch user status.');
         }
-        return res.json();
-      })
-      .then(resData => {
-        this.setState({ status: resData.status });
+        this.setState({ status: resData.data.user.status });
       })
       .catch(this.catchError);
 
@@ -104,23 +115,30 @@ class Feed extends Component {
 
   statusUpdateHandler = event => {
     event.preventDefault();
-    fetch('http://localhost:8080/user/status', {
-      method: 'PATCH',
+
+    const graphqlQuery = {
+      query: `
+        mutation {
+          updateStatus(status: "${this.state.status}") {
+            status
+          }
+        }
+      `
+    }
+
+    fetch('http://localhost:8080/graphql', {
+      method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + this.props.token,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        status: this.state.status
-      })
+      body: JSON.stringify(graphqlQuery)
     })
-      .then(res => {
-        if (res.status !== 200 && res.status !== 201) {
+      .then(res => res.json())
+      .then(resData => {
+        if (resData.errors) {
           throw new Error("Can't update status!");
         }
-        return res.json();
-      })
-      .then(resData => {
         console.log(resData);
       })
       .catch(this.catchError);
